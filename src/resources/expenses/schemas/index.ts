@@ -6,4 +6,4 @@
  * @cli npm run generate:schema
  */
 
-export * from "./root/index.js";
+export * from "./create/index.js";

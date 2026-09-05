@@ -14,7 +14,7 @@ import { readFile } from "fs/promises";
 
 import { FastifySchema } from "fastify";
 
-export const root: { schema: FastifySchema } = JSON.parse(
+export const create: { schema: FastifySchema } = JSON.parse(
   await readFile(new URL("./schema.json", import.meta.url), {
     encoding: "utf-8",
   })
