@@ -18,13 +18,34 @@ declare namespace Api {
     }
     namespace Expenses {
       namespace Create {
-        interface Response204 {
+        interface Body {
+          amount: number;
+          description: string;
+          categoryId: number;
+        }
+        /**
+         * Created expense.
+         */
+        interface Response201 {
           id: number;
           amount: number;
           description: string;
           categoryId: number;
           createdAt: string;
         }
+        type Request = { Body: Api.Schemas.Expenses.Create.Body };
+      }
+      namespace List {
+        /**
+         * Saved expenses.
+         */
+        type Response200 = {
+          id: number;
+          amount: number;
+          description: string;
+          categoryId: number;
+          createdAt: string;
+        }[];
       }
     }
     namespace Users {

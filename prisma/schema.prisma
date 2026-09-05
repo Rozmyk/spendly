@@ -19,3 +19,14 @@ model User {
 
   @@map("user")
 }
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  amount      Decimal  @db.Decimal(12, 2)
+  description String
+  categoryId  Int      @map("category_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([categoryId])
+  @@map("expense")
+}

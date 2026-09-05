@@ -1,4 +1,5 @@
 {
+  "description": "Created expense.",
   "type": "object",
   "required": [
     "id",

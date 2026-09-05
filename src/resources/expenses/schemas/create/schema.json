@@ -1,17 +1,27 @@
 {
-  "type": "object",
-  "required": ["amount", "description", "categoryId"],
-  "properties": {
-    "amount": {
-      "type": "number",
-      "minimum": 0.01
+  "schema": {
+    "body": {
+      "type": "object",
+      "required": ["amount", "description", "categoryId"],
+      "properties": {
+        "amount": { "type": "number", "minimum": 0.01 },
+        "description": { "type": "string", "minLength": 1 },
+        "categoryId": { "type": "integer" }
+      }
     },
-    "description": {
-      "type": "string",
-      "minLength": 1
-    },
-    "categoryId": {
-      "type": "integer"
+    "response": {
+      "201": {
+        "description": "Created expense.",
+        "type": "object",
+        "required": ["id", "amount", "description", "categoryId", "createdAt"],
+        "properties": {
+          "id": { "type": "integer" },
+          "amount": { "type": "number" },
+          "description": { "type": "string" },
+          "categoryId": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
     }
   }
 }

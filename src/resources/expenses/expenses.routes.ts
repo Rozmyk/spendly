@@ -7,7 +7,17 @@ export default async (fastify: FastifyInstance) => {
    * @function
    * @name POST /expenses
    */
-  fastify.post("/expenses", fastify.resources.expenses.schemas.create, async function (_request, reply) {
-    return reply.code(204).send();
+  fastify.post<Api.Schemas.Expenses.Create.Request>("/expenses", fastify.resources.expenses.schemas.create, async function (request, reply) {
+    return new fastify.resources.expenses.controllers.Create(request, reply, this).handle();
+  });
+
+  /**
+   * List saved expenses.
+   *
+   * @function
+   * @name GET /expenses
+   */
+  fastify.get("/expenses", fastify.resources.expenses.schemas.list, async function (_request, reply) {
+    return new fastify.resources.expenses.controllers.List(reply, this).handle();
   });
 };
