@@ -16,6 +16,17 @@ declare namespace Api {
         type Response204 = null;
       }
     }
+    namespace Expenses {
+      namespace Create {
+        interface Response204 {
+          id: number;
+          amount: number;
+          description: string;
+          categoryId: number;
+          createdAt: string;
+        }
+      }
+    }
     namespace Users {
       namespace Create {
         interface Body {
