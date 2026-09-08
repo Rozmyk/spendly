@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Box, CircularProgress, Divider, Paper, Stack, TextField } from "@mui/material";
+import { Alert, Box, Divider, Paper, Stack, TextField } from "@mui/material";
 import { authClient } from "../../lib/auth-client";
 import DashboardHeader from "../dashboard/DashboardHeader";
 import SidebarNavigation from "../dashboard/SidebarNavigation";
 import AppButton from "../ui/AppButton";
+import LoadingScreen from "../ui/LoadingScreen";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function ProfilePage() {
   useEffect(() => { if (!isPending && !session) router.replace("/"); }, [isPending, router, session]);
   useEffect(() => { if (session) setName(session.user.name); }, [session]);
 
-  if (isPending || !session) return <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "var(--color-paper)" }}><CircularProgress size={28} sx={{ color: "var(--color-accent)" }} /></Box>;
+  if (isPending || !session) return <LoadingScreen label="Opening your profile" />;
 
   const save = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
