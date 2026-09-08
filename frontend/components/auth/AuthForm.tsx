@@ -1,309 +1,47 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  IconButton,
-  InputAdornment,
-  Paper,
-  TextField,
-} from "@mui/material";
-import { IconEye, IconEyeOff } from "@tabler/icons-react";
+import { Alert, Box, Button, Paper, Stack, TextField } from "@mui/material";
+import { authClient } from "../../lib/auth-client";
 
 type AuthMode = "login" | "register";
 
 interface AuthFormProps {
-  mode?: AuthMode;
-  onSubmit?: (data: {
-    email: string;
-    password: string;
-    name?: string;
-  }) => Promise<void> | void;
+  onAuthenticated: () => void;
 }
 
-export default function AuthForm({
-  mode: initialMode = "login",
-  onSubmit,
-}: AuthFormProps) {
-  const [mode, setMode] = useState<AuthMode>(initialMode);
+export default function AuthForm({ onAuthenticated }: AuthFormProps) {
+  const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const isRegister = mode === "register";
 
-  const handleModeChange = (newMode: AuthMode) => {
-    setMode(newMode);
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
-  };
+    setLoading(true);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
+    const result = isRegister
+      ? await authClient.signUp.email({ name, email, password })
+      : await authClient.signIn.email({ email, password });
 
-    if (!email || !password) {
-      setError("Email and password are required.");
+    setLoading(false);
+
+    if (result.error) {
+      setError(result.error.message || "Unable to continue. Please try again.");
       return;
     }
 
-    if (isRegister) {
-      if (!name) {
-        setError("Name is required.");
-        return;
-      }
-
-      if (password.length < 8) {
-        setError("Password must contain at least 8 characters.");
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        setError("Passwords do not match.");
-        return;
-      }
-    }
-
-    try {
-      setLoading(true);
-
-      await onSubmit?.({
-        email,
-        password,
-        ...(isRegister && { name }),
-      });
-    } catch {
-      setError(
-        isRegister
-          ? "Unable to create your account."
-          : "Invalid email or password."
-      );
-    } finally {
-      setLoading(false);
-    }
+    onAuthenticated();
   };
 
-  return (
-    <Paper
-      elevation={4}
-      sx={{
-        width: "100%",
-        maxWidth: 440,
-        p: { xs: 3, sm: 4 },
-        borderRadius: 3,
-      }}
-    >
-      <Box sx={{ mb: 3, textAlign: "center" }}>
-        <Box
-          component="h1"
-          sx={{
-            fontSize: "1.875rem",
-            fontWeight: 700,
-            m: 0,
-            mb: 1,
-          }}
-        >
-          {isRegister ? "Create account" : "Welcome back"}
-        </Box>
+  const changeMode = (nextMode: AuthMode) => {
+    setMode(nextMode);
+    setError("");
+  };
 
-        <Box
-          component="p"
-          sx={{
-            color: "text.secondary",
-            m: 0,
-          }}
-        >
-          {isRegister
-            ? "Create your account to get started."
-            : "Sign in to continue to your account."}
-        </Box>
-      </Box>
-
-     
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      <Box component="form" onSubmit={handleSubmit} noValidate>
-        {isRegister && (
-          <TextField
-            fullWidth
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            margin="normal"
-            autoComplete="name"
-          />
-        )}
-
-        <TextField
-          fullWidth
-          required
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          margin="normal"
-          autoComplete="email"
-        />
-
-        <TextField
-          fullWidth
-          required
-          label="Password"
-          type={showPassword ? "text" : "password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          margin="normal"
-          autoComplete={isRegister ? "new-password" : "current-password"}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    edge="end"
-                  >
-                    {showPassword ? (
-                      <IconEyeOff size={20} />
-                    ) : (
-                      <IconEye size={20} />
-                    )}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-
-        {isRegister && (
-          <TextField
-            fullWidth
-            required
-            label="Confirm password"
-            type={showConfirmPassword ? "text" : "password"}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            margin="normal"
-            autoComplete="new-password"
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() =>
-                        setShowConfirmPassword((prev) => !prev)
-                      }
-                      edge="end"
-                    >
-                      {showConfirmPassword ? (
-                        <IconEyeOff size={20} />
-                      ) : (
-                        <IconEye size={20} />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        )}
-
-        {!isRegister && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 1,
-              mb: 2,
-            }}
-          >
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-              }
-              label="Remember me"
-            />
-
-            <Button
-              type="button"
-              variant="text"
-              size="small"
-              sx={{ textTransform: "none" }}
-            >
-              Forgot password?
-            </Button>
-          </Box>
-        )}
-
-        <Button
-          fullWidth
-          type="submit"
-          variant="contained"
-          size="large"
-          disabled={loading}
-          sx={{
-            mt: isRegister ? 3 : 1,
-            py: 1.4,
-            borderRadius: 2,
-            textTransform: "none",
-            fontSize: "1rem",
-            fontWeight: 600,
-          }}
-        >
-          {loading
-            ? "Please wait..."
-            : isRegister
-              ? "Create account"
-              : "Sign in"}
-        </Button>
-      </Box>
-
-      <Box sx={{ textAlign: "center", mt: 3 }}>
-        <Box
-          component="span"
-          sx={{
-            fontSize: "0.875rem",
-            color: "text.secondary",
-          }}
-        >
-          {isRegister
-            ? "Already have an account?"
-            : "Don't have an account?"}{" "}
-        </Box>
-
-        <Button
-          variant="text"
-          size="small"
-          onClick={() =>
-            handleModeChange(isRegister ? "login" : "register")
-          }
-          sx={{
-            textTransform: "none",
-            fontWeight: 600,
-            p: 0,
-            minWidth: "auto",
-          }}
-        >
-          {isRegister ? "Sign in" : "Sign up"}
-        </Button>
-      </Box>
-    </Paper>
-  );
+  return <Box component="main" sx={{ minHeight: "100vh", display: "grid", placeItems: "center", px: 2, py: 4, bgcolor: "var(--color-paper)" }}><Paper elevation={0} sx={{ width: "100%", maxWidth: 400, p: { xs: 3, sm: 4 }, border: "1px solid var(--color-rule)", borderRadius: "var(--radius-md)" }}><Box sx={{ color: "var(--color-ink)", fontSize: "1.1rem", fontWeight: 800, letterSpacing: "-0.04em" }}>Spendly</Box><Box component="h1" sx={{ m: 0, mt: 4, color: "var(--color-ink)", fontSize: "var(--text-2xl)", fontWeight: 750, letterSpacing: "-0.04em" }}>{isRegister ? "Create your account" : "Welcome back"}</Box><Box component="p" sx={{ m: 0, mt: 1, color: "var(--color-muted)", fontSize: "var(--text-sm)" }}>{isRegister ? "Start tracking your spending in one place." : "Sign in to view your finances."}</Box>{error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}<Box component="form" onSubmit={submit} noValidate sx={{ mt: 3 }}><Stack spacing={2}>{isRegister && <TextField required label="Name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" />}<TextField required label="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" /><TextField required label="Password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={isRegister ? "new-password" : "current-password"} helperText={isRegister ? "At least 8 characters" : undefined} /><Button type="submit" variant="contained" disabled={loading} sx={{ minHeight: 46, mt: 0.5, bgcolor: "var(--color-accent)", color: "var(--color-accent-ink)", textTransform: "none", fontWeight: 800, boxShadow: "none", "&:hover": { bgcolor: "var(--color-accent)", boxShadow: "none" } }}>{loading ? "Please wait" : isRegister ? "Create account" : "Sign in"}</Button></Stack></Box><Button type="button" onClick={() => changeMode(isRegister ? "login" : "register")} sx={{ mt: 2, px: 0, color: "var(--color-ink-2)", textTransform: "none", fontSize: "var(--text-sm)", fontWeight: 700 }}>{isRegister ? "Already have an account? Sign in" : "New to Spendly? Create an account"}</Button></Paper></Box>;
 }

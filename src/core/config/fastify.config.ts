@@ -33,6 +33,7 @@ const ajv: { customOptions: AjvOptions } = {
 const cors: FastifyCorsOptions = {
   preflightContinue: false,
   credentials: true,
+  origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
 };
 
 /**
