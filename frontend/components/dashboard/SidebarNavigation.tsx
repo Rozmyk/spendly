@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Box, Button, Divider, Stack } from "@mui/material";
 
-const workspaceNavigation = [{ label: "Overview", href: "/" }, { label: "Expenses", href: "/expenses" }, { label: "Analytics", href: "/analytics" }, { label: "Budgets", href: "/budgets" }, { label: "Settings" }];
+const workspaceNavigation = [{ label: "Overview", href: "/" }, { label: "Expenses", href: "/expenses" }, { label: "Analytics", href: "/analytics" }, { label: "Budgets", href: "/budgets" }, { label: "Settings", href: "/settings" }];
 
 export default function SidebarNavigation() {
   const pathname = usePathname();
