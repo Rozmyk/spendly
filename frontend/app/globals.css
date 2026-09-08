@@ -1,0 +1,19 @@
+/* Hallmark · pre-emit critique: P4 H5 E5 S5 R5 V5 · genre: modern-minimal · macrostructure: Workbench · theme: Coral · tone: utilitarian · audience: personal expense tracking · use: add and review expenses · enrichment: none · nav: N9 · footer: Ft2 · contrast: pass (40–41) · slop: pass (42–45) · honest: pass (46) · chrome: pass (47) · tokens: pass (48) · responsive: pass (34, 49–57) */
+@import "../tokens.css";
+@import "@fontsource-variable/manrope";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+* { box-sizing: border-box; }
+
+html, body { min-height: 100%; overflow-x: clip; }
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+

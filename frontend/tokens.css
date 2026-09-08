@@ -1,0 +1,50 @@
+:root {
+  --color-paper: oklch(97.8% 0.008 65);
+  --color-paper-2: oklch(94.8% 0.012 65);
+  --color-paper-3: oklch(91.5% 0.017 65);
+  --color-ink: oklch(24% 0.018 45);
+  --color-ink-2: oklch(37% 0.02 45);
+  --color-muted: oklch(49% 0.017 58);
+  --color-rule: oklch(84% 0.015 60);
+  --color-accent: oklch(52% 0.17 30);
+  --color-accent-ink: oklch(99% 0.004 65);
+  --color-accent-soft: oklch(91% 0.04 30);
+  --color-focus: oklch(45% 0.17 255);
+  --color-error: oklch(53% 0.19 25);
+  --color-success: oklch(48% 0.13 150);
+  --color-food: oklch(62% 0.12 92);
+  --color-transport: oklch(58% 0.12 250);
+  --color-home: oklch(55% 0.1 145);
+  --color-other: oklch(61% 0.09 330);
+
+  --font-display: "Manrope Variable", sans-serif;
+  --font-body: "Manrope Variable", sans-serif;
+  --font-numeric: "IBM Plex Mono", monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: clamp(1.75rem, 3vw, 2.5rem);
+  --text-display: clamp(2.6rem, 6vw, 5.5rem);
+
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4.5rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --rule: 1px;
+  --dur-short: 150ms;
+  --dur-medium: 220ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
