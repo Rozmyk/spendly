@@ -16,5 +16,5 @@ export default function AuthGate() {
     return <AuthForm onAuthenticated={() => void refetch()} />;
   }
 
-  return <DashboardLayout />;
+  return <DashboardLayout user={session.user} />;
 }
