@@ -15,10 +15,10 @@ class ExpenseRepository {
     this.prisma = new PrismaClient();
   }
 
-  public async create(data: Api.Schemas.Expenses.Create.Body): Promise<Expense> {
+  public async create(data: Api.Schemas.Expenses.Create.Body, userId: string): Promise<Expense> {
     const [expense] = await this.prisma.$queryRaw<Expense[]>(Prisma.sql`
-      INSERT INTO "expense" ("amount", "description", "category_id")
-      VALUES (${data.amount}, ${data.description}, ${data.categoryId})
+      INSERT INTO "expense" ("amount", "description", "category_id", "user_id")
+      VALUES (${data.amount}, ${data.description}, ${data.categoryId}, ${userId}::uuid)
       RETURNING
         "id",
         "amount"::float8 AS "amount",
@@ -30,7 +30,7 @@ class ExpenseRepository {
     return expense;
   }
 
-  public async findAll(): Promise<Expense[]> {
+  public async findAll(userId: string): Promise<Expense[]> {
     return this.prisma.$queryRaw<Expense[]>(Prisma.sql`
       SELECT
         "id",
@@ -39,6 +39,7 @@ class ExpenseRepository {
         "category_id" AS "categoryId",
         "created_at" AS "createdAt"
       FROM "expense"
+      WHERE "user_id" = ${userId}::uuid
       ORDER BY "created_at" DESC
     `);
   }

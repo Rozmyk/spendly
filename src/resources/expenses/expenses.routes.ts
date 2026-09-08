@@ -17,7 +17,7 @@ export default async (fastify: FastifyInstance) => {
    * @function
    * @name GET /expenses
    */
-  fastify.get("/expenses", fastify.resources.expenses.schemas.list, async function (_request, reply) {
-    return new fastify.resources.expenses.controllers.List(reply, this).handle();
+  fastify.get("/expenses", fastify.resources.expenses.schemas.list, async function (request, reply) {
+    return new fastify.resources.expenses.controllers.List(request, reply, this).handle();
   });
 };

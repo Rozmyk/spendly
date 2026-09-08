@@ -20,7 +20,6 @@ interface Category {
 }
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1";
-const storageKey = "spendly-monthly-budget";
 const money = new Intl.NumberFormat("en-GB", {
   style: "currency",
   currency: "PLN",
@@ -35,6 +34,7 @@ export default function BudgetsPage() {
   const [budget, setBudget] = useState(3000);
   const [draft, setDraft] = useState("3000");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const refresh = useCallback(() => {
     fetch(`${apiUrl}/expenses`, { credentials: "include" })
@@ -47,19 +47,21 @@ export default function BudgetsPage() {
     if (!isPending && !session) router.replace("/");
   }, [isPending, router, session]);
   useEffect(() => {
-    const storedBudget = window.localStorage.getItem(storageKey);
-    if (storedBudget && Number(storedBudget) > 0) {
-      setBudget(Number(storedBudget));
-      setDraft(storedBudget);
-    }
-  }, []);
-  useEffect(() => {
     if (!session) return;
     refresh();
     fetch(`${apiUrl}/categories`, { credentials: "include" })
       .then((response) => (response.ok ? response.json() : []))
       .then(setCategories)
       .catch(() => setCategories([]));
+    fetch(`${apiUrl}/budget`, { credentials: "include" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data?.monthlyLimit) {
+          setBudget(data.monthlyLimit);
+          setDraft(String(data.monthlyLimit));
+        }
+      })
+      .catch(() => undefined);
   }, [refresh, session]);
 
   const currentMonth = new Date();
@@ -97,11 +99,19 @@ export default function BudgetsPage() {
   if (isPending || !session)
     return <LoadingScreen label="Opening your budgets" />;
 
-  const saveBudget = () => {
+  const saveBudget = async () => {
     const nextBudget = Number(draft);
     if (!Number.isFinite(nextBudget) || nextBudget <= 0) return;
+    setSaving(true);
+    const response = await fetch(`${apiUrl}/budget`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ monthlyLimit: nextBudget }),
+    });
+    setSaving(false);
+    if (!response.ok) return;
     setBudget(nextBudget);
-    window.localStorage.setItem(storageKey, String(nextBudget));
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1800);
   };
@@ -296,6 +306,7 @@ export default function BudgetsPage() {
                 <Button
                   onClick={saveBudget}
                   variant="contained"
+                  disabled={saving}
                   sx={{
                     minWidth: 84,
                     bgcolor: "var(--color-accent)",
@@ -308,7 +319,7 @@ export default function BudgetsPage() {
                     },
                   }}
                 >
-                  {saved ? "Saved" : "Save"}
+                  {saving ? "Saving…" : saved ? "Saved" : "Save"}
                 </Button>
               </Box>
             </Paper>
@@ -365,8 +376,7 @@ export default function BudgetsPage() {
                   fontSize: "var(--text-xs)",
                 }}
               >
-                Your monthly limit is stored on this device. Category pace
-                splits it evenly across your available categories.
+                Your monthly limit is saved to your account. Category pace splits it evenly across your available categories.
               </Box>
             </Box>
           </Stack>

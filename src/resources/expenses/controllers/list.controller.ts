@@ -1,13 +1,17 @@
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { requireUserId } from "@core/auth/index.js";
 
 export class List {
   public constructor(
+    private request: FastifyRequest,
     private reply: FastifyReply,
     private fastify: FastifyInstance,
   ) {}
 
   public async handle() {
-    const expenses = await this.fastify.resources.expenses.repositories.expenseRepository.findAll();
+    const userId = await requireUserId(this.request, this.reply);
+    if (!userId) return;
+    const expenses = await this.fastify.resources.expenses.repositories.expenseRepository.findAll(userId);
 
     return this.reply.send(expenses);
   }

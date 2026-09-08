@@ -20,6 +20,8 @@ model User {
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   sessions      Session[]
   accounts      Account[]
+  expenses      Expense[]
+  budget        Budget?
 
   @@map("user")
 }
@@ -77,10 +79,24 @@ model Expense {
   amount      Decimal  @db.Decimal(12, 2)
   description String
   categoryId  Int      @map("category_id")
+  userId      String?  @map("user_id") @db.Uuid
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([categoryId])
+  @@index([userId])
   @@map("expense")
+}
+
+model Budget {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId       String   @unique @map("user_id") @db.Uuid
+  monthlyLimit Decimal  @map("monthly_limit") @db.Decimal(12, 2)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("budget")
 }
 
 model Category {
