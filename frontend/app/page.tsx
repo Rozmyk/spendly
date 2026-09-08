@@ -1,17 +1,7 @@
 "use client";
 
-import AuthForm from "../components/auth/AuthForm";
-
-
-
+import DashboardLayout from "../components/dashboard/DashboardLayout";
 
 export default function Home() {
-
-
-  return (
-    <main className="shell">
-    <AuthForm/>
-
-    </main>
-  );
+  return <DashboardLayout />;
 }
