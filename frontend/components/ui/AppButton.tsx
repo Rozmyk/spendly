@@ -2,11 +2,14 @@
 
 import { Button } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
+import type { Theme } from "@mui/material/styles";
+import type { SystemStyleObject } from "@mui/system";
 
 export type AppButtonTone = "primary" | "neutral" | "danger" | "success";
 
-interface AppButtonProps extends Omit<ButtonProps, "color" | "variant"> {
+interface AppButtonProps extends Omit<ButtonProps, "color" | "sx" | "variant"> {
   tone?: AppButtonTone;
+  sx?: SystemStyleObject<Theme>;
 }
 
 const toneStyles = {
@@ -17,5 +20,5 @@ const toneStyles = {
 };
 
 export default function AppButton({ tone = "primary", sx, ...props }: AppButtonProps) {
-  return <Button variant="contained" disableElevation sx={[{ minHeight: 46, px: 2.5, borderRadius: "var(--radius-sm)", textTransform: "none", fontWeight: 800, transition: "background-color var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out)", "&:hover, &.is-hover": { transform: "translateY(-1px)" }, "&:focus-visible, &.is-focus": { outline: "3px solid var(--color-focus)", outlineOffset: 2 }, "&:active, &.is-active": { transform: "translateY(1px)" }, "&.Mui-disabled": { bgcolor: "var(--color-paper-3)", color: "var(--color-muted)" } }, toneStyles[tone], ...(sx ? [sx] : [])]} {...props} />;
+  return <Button variant="contained" disableElevation sx={{ minHeight: 46, px: 2.5, borderRadius: "var(--radius-sm)", textTransform: "none", fontWeight: 800, transition: "background-color var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out)", "&:hover, &.is-hover": { transform: "translateY(-1px)" }, "&:focus-visible, &.is-focus": { outline: "3px solid var(--color-focus)", outlineOffset: 2 }, "&:active, &.is-active": { transform: "translateY(1px)" }, "&.Mui-disabled": { bgcolor: "var(--color-paper-3)", color: "var(--color-muted)" }, ...toneStyles[tone], ...sx }} {...props} />;
 }
