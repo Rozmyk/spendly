@@ -1,17 +1,259 @@
 import { Box, Paper, Stack } from "@mui/material";
+import { CategoryIcon } from "../ui/CategoryIcon";
 
-interface Expense { amount: number; categoryId: number; createdAt: string; }
-interface Category { id: number; name: string; }
+interface Expense {
+  amount: number;
+  categoryId: number;
+  createdAt: string;
+}
+interface Category {
+  id: number;
+  name: string;
+}
 
 const dayKey = (date: Date) => date.toISOString().slice(0, 10);
 
-export default function SpendingInsights({ expenses, categories }: { expenses: Expense[]; categories: Category[] }) {
+export default function SpendingInsights({
+  expenses,
+  categories,
+}: {
+  expenses: Expense[];
+  categories: Category[];
+}) {
   const today = new Date();
-  const days = Array.from({ length: 7 }, (_, index) => { const date = new Date(today); date.setDate(today.getDate() - 6 + index); return date; });
-  const daily = days.map((date) => ({ label: new Intl.DateTimeFormat("en", { weekday: "short" }).format(date), amount: expenses.filter((expense) => dayKey(new Date(expense.createdAt)) === dayKey(date)).reduce((sum, expense) => sum + expense.amount, 0) }));
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - 6 + index);
+    return date;
+  });
+  const daily = days.map((date) => ({
+    label: new Intl.DateTimeFormat("en", { weekday: "short" }).format(date),
+    amount: expenses
+      .filter((expense) => dayKey(new Date(expense.createdAt)) === dayKey(date))
+      .reduce((sum, expense) => sum + expense.amount, 0),
+  }));
   const weeklyTotal = daily.reduce((sum, day) => sum + day.amount, 0);
   const highest = Math.max(...daily.map((day) => day.amount), 1);
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const byCategory = categories.map((category) => ({ name: category.name, amount: expenses.filter((expense) => expense.categoryId === category.id).reduce((sum, expense) => sum + expense.amount, 0) })).filter((category) => category.amount > 0).sort((a, b) => b.amount - a.amount);
-  return <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.55fr) minmax(260px, 0.85fr)" }, gap: 1.5 }}><Paper elevation={0} sx={{ minHeight: 292, p: { xs: 2, md: 2.5 }, border: "1px solid var(--color-rule)", borderRadius: "var(--radius-md)" }}><Stack direction="row" sx={{ justifyContent: "space-between", gap: 2 }}><Box><Box component="h2" sx={{ m: 0, color: "var(--color-ink)", fontSize: "var(--text-base)", fontWeight: 800 }}>Expenses this week</Box><Box sx={{ mt: 0.5, color: "var(--color-muted)", fontSize: "var(--text-sm)" }}>Last 7 days</Box></Box><Box sx={{ color: "var(--color-ink)", fontFamily: "var(--font-numeric)", fontSize: "var(--text-sm)", fontWeight: 700, whiteSpace: "nowrap" }}>{weeklyTotal.toFixed(2)} PLN</Box></Stack><Box sx={{ height: 164, mt: 3, display: "flex", alignItems: "end", gap: { xs: 0.75, sm: 1.25 }, borderBottom: "1px solid var(--color-rule)", backgroundImage: "linear-gradient(to bottom, transparent 24%, var(--color-paper-2) 25%, transparent 26%, transparent 49%, var(--color-paper-2) 50%, transparent 51%, transparent 74%, var(--color-paper-2) 75%, transparent 76%)" }}>{daily.map((day, index) => <Box key={day.label} title={`${day.label}: ${day.amount.toFixed(2)} PLN`} sx={{ flex: 1, minWidth: 0, alignSelf: "stretch", display: "flex", alignItems: "end" }}><Box sx={{ width: "100%", height: `${day.amount ? Math.max(8, (day.amount / highest) * 100) : 2}%`, borderRadius: "6px 6px 0 0", bgcolor: index === daily.length - 1 ? "var(--color-accent)" : "var(--color-accent-soft)", transition: "height var(--dur-medium) var(--ease-out)" }} /></Box>)}</Box><Stack direction="row" sx={{ mt: 1, justifyContent: "space-between", color: "var(--color-muted)", fontSize: "var(--text-xs)", fontFamily: "var(--font-numeric)" }}>{daily.map((day) => <Box key={day.label}>{day.label}</Box>)}</Stack></Paper><Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, border: "1px solid var(--color-rule)", borderRadius: "var(--radius-md)" }}><Box component="h2" sx={{ m: 0, color: "var(--color-ink)", fontSize: "var(--text-base)", fontWeight: 800 }}>Spending by category</Box><Box sx={{ mt: 0.5, color: "var(--color-muted)", fontSize: "var(--text-sm)" }}>{total ? `${total.toFixed(2)} PLN across all expenses` : "Categories will appear after your first expense."}</Box><Stack spacing={2} sx={{ mt: 3 }}>{byCategory.length ? byCategory.map((category) => <Box key={category.name}><Stack direction="row" sx={{ justifyContent: "space-between", gap: 1 }}><Box sx={{ color: "var(--color-ink-2)", fontSize: "var(--text-sm)", fontWeight: 700 }}>{category.name}</Box><Box sx={{ color: "var(--color-ink)", fontFamily: "var(--font-numeric)", fontSize: "var(--text-sm)", fontWeight: 700, whiteSpace: "nowrap" }}>{category.amount.toFixed(2)} PLN</Box></Stack><Box sx={{ height: 7, mt: 0.75, borderRadius: 99, bgcolor: "var(--color-paper-2)" }}><Box sx={{ height: "100%", width: `${(category.amount / total) * 100}%`, borderRadius: 99, bgcolor: "var(--color-accent)" }} /></Box></Box>) : <Box sx={{ display: "grid", placeItems: "center", minHeight: 148, border: "1px dashed var(--color-rule)", borderRadius: "var(--radius-sm)", color: "var(--color-muted)", fontSize: "var(--text-sm)" }}>No categories to show</Box>}</Stack></Paper></Box>;
+  const byCategory = categories
+    .map((category) => ({
+      name: category.name,
+      amount: expenses
+        .filter((expense) => expense.categoryId === category.id)
+        .reduce((sum, expense) => sum + expense.amount, 0),
+    }))
+    .filter((category) => category.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          lg: "minmax(0, 1.55fr) minmax(260px, 0.85fr)",
+        },
+        gap: 1.5,
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          minHeight: 292,
+          p: { xs: 2, md: 2.5 },
+          border: "1px solid var(--color-rule)",
+          borderRadius: "var(--radius-md)",
+        }}
+      >
+        <Stack direction="row" sx={{ justifyContent: "space-between", gap: 2 }}>
+          <Box>
+            <Box
+              component="h2"
+              sx={{
+                m: 0,
+                color: "var(--color-ink)",
+                fontSize: "var(--text-base)",
+                fontWeight: 800,
+              }}
+            >
+              Expenses this week
+            </Box>
+            <Box
+              sx={{
+                mt: 0.5,
+                color: "var(--color-muted)",
+                fontSize: "var(--text-sm)",
+              }}
+            >
+              Last 7 days
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              color: "var(--color-ink)",
+              fontFamily: "var(--font-numeric)",
+              fontSize: "var(--text-sm)",
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {weeklyTotal.toFixed(2)} PLN
+          </Box>
+        </Stack>
+        <Box
+          sx={{
+            height: 164,
+            mt: 3,
+            display: "flex",
+            alignItems: "end",
+            gap: { xs: 0.75, sm: 1.25 },
+            borderBottom: "1px solid var(--color-rule)",
+            backgroundImage:
+              "linear-gradient(to bottom, transparent 24%, var(--color-paper-2) 25%, transparent 26%, transparent 49%, var(--color-paper-2) 50%, transparent 51%, transparent 74%, var(--color-paper-2) 75%, transparent 76%)",
+          }}
+        >
+          {daily.map((day, index) => (
+            <Box
+              key={day.label}
+              title={`${day.label}: ${day.amount.toFixed(2)} PLN`}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                alignSelf: "stretch",
+                display: "flex",
+                alignItems: "end",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "100%",
+                  height: `${
+                    day.amount ? Math.max(8, (day.amount / highest) * 100) : 2
+                  }%`,
+                  borderRadius: "6px 6px 0 0",
+                  bgcolor:
+                    index === daily.length - 1
+                      ? "var(--color-accent)"
+                      : "var(--color-accent-soft)",
+                  transition: "height var(--dur-medium) var(--ease-out)",
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
+        <Stack
+          direction="row"
+          sx={{
+            mt: 1,
+            justifyContent: "space-between",
+            color: "var(--color-muted)",
+            fontSize: "var(--text-xs)",
+            fontFamily: "var(--font-numeric)",
+          }}
+        >
+          {daily.map((day) => (
+            <Box key={day.label}>{day.label}</Box>
+          ))}
+        </Stack>
+      </Paper>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2, md: 2.5 },
+          border: "1px solid var(--color-rule)",
+          borderRadius: "var(--radius-md)",
+        }}
+      >
+        <Box
+          component="h2"
+          sx={{
+            m: 0,
+            color: "var(--color-ink)",
+            fontSize: "var(--text-base)",
+            fontWeight: 800,
+          }}
+        >
+          Spending by category
+        </Box>
+        <Box
+          sx={{
+            mt: 0.5,
+            color: "var(--color-muted)",
+            fontSize: "var(--text-sm)",
+          }}
+        >
+          {total
+            ? `${total.toFixed(2)} PLN across all expenses`
+            : "Categories will appear after your first expense."}
+        </Box>
+        <Stack spacing={2} sx={{ mt: 3 }}>
+          {byCategory.length ? (
+            byCategory.map((category) => (
+              <Box key={category.name}>
+                <Stack
+                  direction="row"
+                  sx={{ justifyContent: "space-between", gap: 1 }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.75,
+                      color: "var(--color-ink-2)",
+                      fontSize: "var(--text-sm)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    <CategoryIcon name={category.name} size={22} />
+                    {category.name}
+                  </Box>
+                  <Box
+                    sx={{
+                      color: "var(--color-ink)",
+                      fontFamily: "var(--font-numeric)",
+                      fontSize: "var(--text-sm)",
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {category.amount.toFixed(2)} PLN
+                  </Box>
+                </Stack>
+                <Box
+                  sx={{
+                    height: 7,
+                    mt: 0.75,
+                    borderRadius: 99,
+                    bgcolor: "var(--color-paper-2)",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      height: "100%",
+                      width: `${(category.amount / total) * 100}%`,
+                      borderRadius: 99,
+                      bgcolor: "var(--color-accent)",
+                    }}
+                  />
+                </Box>
+              </Box>
+            ))
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                placeItems: "center",
+                minHeight: 148,
+                border: "1px dashed var(--color-rule)",
+                borderRadius: "var(--radius-sm)",
+                color: "var(--color-muted)",
+                fontSize: "var(--text-sm)",
+              }}
+            >
+              No categories to show
+            </Box>
+          )}
+        </Stack>
+      </Paper>
+    </Box>
+  );
 }

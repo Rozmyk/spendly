@@ -7,6 +7,7 @@ import { authClient } from "../../lib/auth-client";
 import DashboardHeader from "../dashboard/DashboardHeader";
 import SidebarNavigation from "../dashboard/SidebarNavigation";
 import LoadingScreen from "../ui/LoadingScreen";
+import { CategoryIcon } from "../ui/CategoryIcon";
 
 interface Expense {
   amount: number;
@@ -396,7 +397,10 @@ function CategoryBudget({
       }}
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-        <Box sx={{ color: "var(--color-ink)", fontWeight: 800 }}>{name}</Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <CategoryIcon name={name} />
+          <Box sx={{ color: "var(--color-ink)", fontWeight: 800 }}>{name}</Box>
+        </Box>
         <Box
           sx={{
             color: over ? "var(--color-error)" : "var(--color-ink-2)",
