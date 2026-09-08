@@ -82,3 +82,11 @@ model Expense {
   @@index([categoryId])
   @@map("expense")
 }
+
+model Category {
+  id        Int      @id
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("category")
+}
