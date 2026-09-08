@@ -6,7 +6,10 @@ export interface Expense {
   description: string;
   categoryId: number;
   createdAt: Date;
+  updatedAt: Date;
 }
+
+export type UpdateExpense = Partial<Pick<Expense, "amount" | "description" | "categoryId">>;
 
 class ExpenseRepository {
   private prisma: PrismaClient;
@@ -24,7 +27,8 @@ class ExpenseRepository {
         "amount"::float8 AS "amount",
         "description",
         "category_id" AS "categoryId",
-        "created_at" AS "createdAt"
+        "created_at" AS "createdAt",
+        "updated_at" AS "updatedAt"
     `);
 
     return expense;
@@ -37,11 +41,31 @@ class ExpenseRepository {
         "amount"::float8 AS "amount",
         "description",
         "category_id" AS "categoryId",
-        "created_at" AS "createdAt"
+        "created_at" AS "createdAt",
+        "updated_at" AS "updatedAt"
       FROM "expense"
       WHERE "user_id" = ${userId}::uuid
       ORDER BY "created_at" DESC
     `);
+  }
+
+  public async findById(id: number, userId: string): Promise<Expense | null> {
+    const [expense] = await this.prisma.$queryRaw<Expense[]>(Prisma.sql`SELECT "id", "amount"::float8 AS "amount", "description", "category_id" AS "categoryId", "created_at" AS "createdAt", "updated_at" AS "updatedAt" FROM "expense" WHERE "id" = ${id} AND "user_id" = ${userId}::uuid`);
+    return expense || null;
+  }
+
+  public async update(id: number, userId: string, data: UpdateExpense): Promise<Expense | null> {
+    const fields: Prisma.Sql[] = [];
+    if (data.amount !== undefined) fields.push(Prisma.sql`"amount" = ${data.amount}`);
+    if (data.description !== undefined) fields.push(Prisma.sql`"description" = ${data.description}`);
+    if (data.categoryId !== undefined) fields.push(Prisma.sql`"category_id" = ${data.categoryId}`);
+    fields.push(Prisma.sql`"updated_at" = CURRENT_TIMESTAMP`);
+    const [expense] = await this.prisma.$queryRaw<Expense[]>(Prisma.sql`UPDATE "expense" SET ${Prisma.join(fields, ", ")} WHERE "id" = ${id} AND "user_id" = ${userId}::uuid RETURNING "id", "amount"::float8 AS "amount", "description", "category_id" AS "categoryId", "created_at" AS "createdAt", "updated_at" AS "updatedAt"`);
+    return expense || null;
+  }
+
+  public async delete(id: number, userId: string): Promise<boolean> {
+    return (await this.prisma.$executeRaw(Prisma.sql`DELETE FROM "expense" WHERE "id" = ${id} AND "user_id" = ${userId}::uuid`)) === 1;
   }
 }
 
