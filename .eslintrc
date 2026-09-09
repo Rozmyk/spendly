@@ -84,5 +84,12 @@
         "ts-ignore": "allow-with-description"
       }]
     }
+  }, {
+    "files": ["frontend/**/*.{ts,tsx}"],
+    "rules": {
+      "@typescript-eslint/member-delimiter-style": "off",
+      "import/extensions": "off",
+      "import/order": "off"
+    }
   }]
 }

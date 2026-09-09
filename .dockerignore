@@ -1,0 +1,9 @@
+.git
+.github
+build
+coverage
+frontend/.next
+frontend/node_modules
+node_modules
+npm-debug.log
+ssl

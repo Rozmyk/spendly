@@ -20,6 +20,7 @@ await fastify.register(plugins.resources);
 await fastify.register(sensible);
 await fastify.register(plugins.errorHandler);
 await fastify.register(plugins.prismaPlugin);
+await fastify.register(plugins.observability);
 await fastify.register(cors, config.fastify.cors);
 await fastify.register(helmet, config.fastify.helmet);
 await fastify.register(rateLimit, { max: 100, timeWindow: "1 minute" });

@@ -12,7 +12,7 @@ Spendly is a full-stack personal-finance application for recording expenses, set
 - Server-side monthly reports, including category totals and remaining budget
 - Filtered, sorted, and paginated expense lists
 - PostgreSQL indexes for common expense queries
-- Request validation, OpenAPI/Swagger documentation, security headers, CORS, rate limiting, structured logging, and liveness/readiness checks
+- Request validation, OpenAPI/Swagger documentation, security headers, CORS, rate limiting, structured logging, metrics, and liveness/readiness checks
 
 ## Tech stack
 
@@ -47,7 +47,7 @@ PostgreSQL
 
 ### Prerequisites
 
-- Node.js 18 or newer
+- Node.js 22 or newer
 - Docker and Docker Compose
 
 ### 1. Start PostgreSQL
@@ -106,6 +106,7 @@ Interactive API documentation is available at [http://localhost:5050/explorer](h
 | --- | --- | --- |
 | `GET` | `/v1/health` | Liveness check |
 | `GET` | `/v1/ready` | Readiness check, including PostgreSQL connectivity |
+| `GET` | `/metrics` | Prometheus-compatible process and HTTP metrics |
 | `GET`, `POST` | `/v1/auth/*` | Authentication endpoints handled by Better Auth |
 | `GET` | `/v1/categories` | List expense categories |
 | `GET`, `PUT` | `/v1/budget` | Read or update the current user's monthly budget |
@@ -155,6 +156,18 @@ npx tsc --noEmit
 npm test -- --run
 npm run build
 ```
+
+The GitHub Actions workflow runs type checks, unit tests, a PostgreSQL-backed integration test, database migrations, and the frontend production build on every pull request and push to `main`.
+
+## Docker
+
+Run the complete stack with Docker:
+
+```bash
+docker compose up --build
+```
+
+The API is available on port `5050`, the frontend on port `3000`, and PostgreSQL on port `5433`.
 
 ## Project structure
 
