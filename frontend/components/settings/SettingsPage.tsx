@@ -45,6 +45,7 @@ export default function SettingsPage() {
         <SidebarNavigation />
         <Box
           component="main"
+          className="workspace-content"
           sx={{
             flex: 1,
             minWidth: 0,

@@ -123,6 +123,7 @@ export default function BudgetsPage() {
         <SidebarNavigation />
         <Box
           component="main"
+          className="workspace-content"
           sx={{
             flex: 1,
             minWidth: 0,
