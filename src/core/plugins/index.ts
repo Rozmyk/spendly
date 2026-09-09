@@ -1,5 +1,6 @@
 export * from "./config.plugin.js";
 export * from "./error-handler.plugin.js";
+export * from "./import-worker.plugin.js";
 export * from "./observability.plugin.js";
 export * from "./prisma.plugin.js";
 export * from "./resources.plugin.js";

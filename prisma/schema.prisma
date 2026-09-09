@@ -22,6 +22,8 @@ model User {
   accounts      Account[]
   expenses      Expense[]
   budget        Budget?
+  importJobs    ImportJob[]
+  idempotencyKeys IdempotencyKey[]
 
   @@map("user")
 }
@@ -88,6 +90,38 @@ model Expense {
   @@index([userId])
   @@index([userId, createdAt])
   @@map("expense")
+}
+
+model ImportJob {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  fileName      String   @map("file_name")
+  content       String   @db.Text
+  status        String   @default("queued")
+  totalRows     Int      @default(0) @map("total_rows")
+  importedRows  Int      @default(0) @map("imported_rows")
+  skippedRows   Int      @default(0) @map("skipped_rows")
+  errorMessage  String?  @map("error_message") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  completedAt   DateTime? @map("completed_at") @db.Timestamptz
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("import_job")
+}
+
+model IdempotencyKey {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  key         String
+  statusCode  Int      @default(0) @map("status_code")
+  response    Json?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@map("idempotency_key")
 }
 
 model Budget {

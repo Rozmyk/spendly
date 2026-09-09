@@ -112,6 +112,8 @@ Interactive API documentation is available at [http://localhost:5050/explorer](h
 | `GET`, `PUT` | `/v1/budget` | Read or update the current user's monthly budget |
 | `GET`, `POST` | `/v1/expenses` | List or create expenses |
 | `GET`, `PATCH`, `DELETE` | `/v1/expenses/:id` | Read, update, or delete an expense |
+| `POST` | `/v1/imports/expenses` | Queue a CSV expense import |
+| `GET` | `/v1/imports/expenses/:id` | Retrieve import progress and result |
 | `GET` | `/v1/reports/monthly` | Monthly spending and budget report |
 
 ### Expense list query parameters
@@ -128,6 +130,34 @@ Interactive API documentation is available at [http://localhost:5050/explorer](h
 | `sort` | `asc` or `desc` | Sort by creation date |
 
 Pagination metadata is returned in the `X-Page`, `X-Page-Size`, and `X-Total-Count` response headers, preserving a simple array response for the client.
+
+### Reliable expense creation
+
+Provide a unique `Idempotency-Key` header when creating an expense. A retried request with the same key returns the original `201` response instead of creating a duplicate.
+
+```bash
+curl -X POST http://localhost:5050/v1/expenses \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 70cae728-4c29-4f42-b1f3-9490c5a53870" \
+  --cookie "better-auth.session_token=..." \
+  -d '{"amount":42.5,"description":"Lunch","categoryId":1}'
+```
+
+### CSV imports
+
+Upload a CSV file to queue a durable background import. The worker records the import status, row totals, skipped rows, and any failure message. The file contents are removed after a successful import.
+
+```csv
+amount,description,categoryId,createdAt
+42.50,Lunch,1,2026-09-09T12:30:00.000Z
+120.00,Train ticket,3,2026-09-08T08:00:00.000Z
+```
+
+```bash
+curl -X POST http://localhost:5050/v1/imports/expenses \
+  --cookie "better-auth.session_token=..." \
+  -F "file=@expenses.csv"
+```
 
 ### Monthly report example
 

@@ -1,5 +1,6 @@
 import autoload from "@fastify/autoload";
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import sensible from "@fastify/sensible";
 import swagger from "@fastify/swagger";
@@ -21,6 +22,8 @@ await fastify.register(sensible);
 await fastify.register(plugins.errorHandler);
 await fastify.register(plugins.prismaPlugin);
 await fastify.register(plugins.observability);
+await fastify.register(multipart);
+await fastify.register(plugins.importWorker);
 await fastify.register(cors, config.fastify.cors);
 await fastify.register(helmet, config.fastify.helmet);
 await fastify.register(rateLimit, { max: 100, timeWindow: "1 minute" });
