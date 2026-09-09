@@ -110,6 +110,9 @@ Interactive API documentation is available at [http://localhost:5050/explorer](h
 | `GET`, `POST` | `/v1/auth/*` | Authentication endpoints handled by Better Auth |
 | `GET` | `/v1/categories` | List expense categories |
 | `GET`, `PUT` | `/v1/budget` | Read or update the current user's monthly budget |
+| `GET`, `POST` | `/v1/accounts` | List or create financial accounts with opening balances |
+| `GET`, `POST` | `/v1/incomes` | List or record income |
+| `GET` | `/v1/financial-summary` | Return opening balance, income, expenses, and current balance |
 | `GET`, `POST` | `/v1/expenses` | List or create expenses |
 | `GET` | `/v1/expenses/export` | Download all user expenses as CSV |
 | `GET`, `PATCH`, `DELETE` | `/v1/expenses/:id` | Read, update, or delete an expense |

@@ -24,6 +24,8 @@ model User {
   budget        Budget?
   importJobs    ImportJob[]
   idempotencyKeys IdempotencyKey[]
+  walletAccounts WalletAccount[]
+  incomes       Income[]
 
   @@map("user")
 }
@@ -133,6 +135,32 @@ model Budget {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("budget")
+}
+
+model WalletAccount {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  name           String
+  openingBalance Decimal  @default(0) @map("opening_balance") @db.Decimal(12, 2)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("wallet_account")
+}
+
+model Income {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id") @db.Uuid
+  amount      Decimal  @db.Decimal(12, 2)
+  description String
+  receivedAt  DateTime @default(now()) @map("received_at") @db.Timestamptz
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, receivedAt])
+  @@map("income")
 }
 
 model Category {
