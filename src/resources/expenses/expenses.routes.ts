@@ -38,6 +38,14 @@ export default async (fastify: FastifyInstance) => {
     return new fastify.resources.expenses.controllers.List(request, reply, this).handle();
   });
 
+  fastify.get("/expenses/export", async function (request, reply) {
+    const userId = await requireUserId(request, reply); if (!userId) return;
+    const expenses = await this.prisma.expense.findMany({ where: { userId }, orderBy: [{ createdAt: "desc" }, { id: "desc" }] });
+    const value = (input: string | number) => `"${String(input).replaceAll('"', '""')}"`;
+    const csv = ["amount,description,categoryId,createdAt", ...expenses.map((expense) => [expense.amount, value(expense.description), expense.categoryId, expense.createdAt.toISOString()].join(","))].join("\n");
+    return reply.header("Content-Disposition", "attachment; filename=spendly-expenses.csv").type("text/csv; charset=utf-8").send(csv);
+  });
+
   fastify.get<{ Params: { id: string } }>("/expenses/:id", { schema: { params } }, async function (request, reply) {
     const userId = await requireUserId(request, reply); if (!userId) return;
     const expense = await this.resources.expenses.repositories.expenseRepository.findById(this.prisma, Number(request.params.id), userId);

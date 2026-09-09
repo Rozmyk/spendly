@@ -111,6 +111,7 @@ Interactive API documentation is available at [http://localhost:5050/explorer](h
 | `GET` | `/v1/categories` | List expense categories |
 | `GET`, `PUT` | `/v1/budget` | Read or update the current user's monthly budget |
 | `GET`, `POST` | `/v1/expenses` | List or create expenses |
+| `GET` | `/v1/expenses/export` | Download all user expenses as CSV |
 | `GET`, `PATCH`, `DELETE` | `/v1/expenses/:id` | Read, update, or delete an expense |
 | `POST` | `/v1/imports/expenses` | Queue a CSV expense import |
 | `GET` | `/v1/imports/expenses/:id` | Retrieve import progress and result |

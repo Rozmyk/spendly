@@ -56,7 +56,7 @@ export default function AddExpenseDialog({ onCreated }: AddExpenseDialogProps) {
     const response = await fetch(`${apiUrl}/expenses`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
       body: JSON.stringify({
         amount: Number(amount),
         description,

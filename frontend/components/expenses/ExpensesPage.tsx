@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Box, Paper, Stack } from "@mui/material";
+import { Alert, Box, Button, Paper, Stack } from "@mui/material";
 import { authClient } from "../../lib/auth-client";
 import AddExpenseDialog from "../dashboard/AddExpenseDialog";
 import DashboardHeader from "../dashboard/DashboardHeader";
@@ -34,6 +34,10 @@ export default function ExpensesPage() {
   const { data: session, isPending } = authClient.useSession();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(() => {
     fetch(`${apiUrl}/expenses`, { credentials: "include" })
@@ -62,6 +66,50 @@ export default function ExpensesPage() {
     () => expenses.reduce((sum, expense) => sum + expense.amount, 0),
     [expenses]
   );
+
+  const exportCsv = async () => {
+    setExporting(true);
+    const response = await fetch(`${apiUrl}/expenses/export`, { credentials: "include" });
+    setExporting(false);
+    if (!response.ok) return setImportMessage("Unable to export expenses right now.");
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "spendly-expenses.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importCsv = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    setImportMessage("Uploading CSV…");
+    const data = new FormData();
+    data.append("file", file);
+    const response = await fetch(`${apiUrl}/imports/expenses`, { method: "POST", credentials: "include", body: data });
+    if (!response.ok) {
+      setImporting(false);
+      return setImportMessage("CSV import could not be started. Check the file format.");
+    }
+    const job = await response.json() as { id: string };
+    const poll = async () => {
+      const status = await fetch(`${apiUrl}/imports/expenses/${job.id}`, { credentials: "include" });
+      if (!status.ok) {
+        setImporting(false);
+        return setImportMessage("CSV import could not be completed.");
+      }
+      const result = await status.json() as { status: string; importedRows: number; skippedRows: number; errorMessage?: string };
+      if (result.status === "queued" || result.status === "processing") return window.setTimeout(poll, 700);
+      setImporting(false);
+      if (result.status === "completed") {
+        setImportMessage(`Imported ${result.importedRows} expenses${result.skippedRows ? `, skipped ${result.skippedRows}` : ""}.`);
+        refresh();
+      } else setImportMessage(result.errorMessage || "CSV import failed.");
+    };
+    void poll();
+  };
 
   if (isPending || !session)
     return <LoadingScreen label="Opening your expenses" />;
@@ -128,8 +176,14 @@ export default function ExpensesPage() {
                   {total.toFixed(2)} PLN recorded
                 </Box>
               </Box>
-              <AddExpenseDialog onCreated={refresh} />
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                <input ref={fileInput} type="file" accept=".csv,text/csv" hidden onChange={importCsv} />
+                <Button onClick={() => fileInput.current?.click()} disabled={importing} sx={{ minHeight: 44, px: 2, color: "var(--color-ink-2)", textTransform: "none", fontWeight: 800 }}>{importing ? "Importing…" : "Import CSV"}</Button>
+                <Button onClick={() => void exportCsv()} disabled={exporting || expenses.length === 0} sx={{ minHeight: 44, px: 2, color: "var(--color-ink-2)", textTransform: "none", fontWeight: 800 }}>{exporting ? "Exporting…" : "Export CSV"}</Button>
+                <AddExpenseDialog onCreated={refresh} />
+              </Stack>
             </Box>
+            {importMessage && <Alert severity={importMessage.includes("could not") || importMessage.includes("failed") ? "error" : "success"} onClose={() => setImportMessage("")}>{importMessage}</Alert>}
             <Paper
               elevation={0}
               sx={{
