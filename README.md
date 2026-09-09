@@ -1,158 +1,172 @@
-# Spendly API
+# Spendly
 
-Backend aplikacji **Spendly** do zapisywania i przeglądania wydatków. API jest zbudowane w TypeScript z użyciem Fastify, Prisma i PostgreSQL.
+Spendly is a full-stack personal-finance application for recording expenses, setting a monthly budget, and understanding spending patterns. It is built as a portfolio project with an emphasis on a well-structured, production-minded API.
 
-## Wymagania
+![Spendly sign-in screen](docs/screenshots/sign-in.png)
 
-- Node.js 18 lub nowszy
-- PostgreSQL
-- npm
+## Highlights
 
-## Szybki start
+- Email-and-password authentication with session-based access control
+- User-scoped expense CRUD operations
+- Monthly budgets and fixed expense categories
+- Server-side monthly reports, including category totals and remaining budget
+- Filtered, sorted, and paginated expense lists
+- PostgreSQL indexes for common expense queries
+- Request validation, OpenAPI/Swagger documentation, security headers, CORS, rate limiting, structured logging, and liveness/readiness checks
 
-1. Zainstaluj zależności:
+## Tech stack
 
-   ```bash
-   npm install
-   ```
+| Area | Technology |
+| --- | --- |
+| Frontend | Next.js, React, TypeScript, Material UI, Recharts |
+| Backend | Node.js, Fastify, TypeScript |
+| Data | PostgreSQL, Prisma |
+| Authentication | Better Auth |
+| Testing | Vitest |
+| Local infrastructure | Docker Compose |
 
-2. Utwórz lokalną konfigurację (opcjonalnie, gdy wartości z `.env.development` Ci nie odpowiadają):
+## Architecture
 
-   ```bash
-   cp .env.development .env.development.local
-   ```
+The frontend communicates with a versioned REST API under `/v1`. Fastify loads resources automatically, Prisma is exposed through a single Fastify plugin, and protected routes resolve the current user from the Better Auth session.
 
-3. Ustaw `DATABASE_URL` w `.env.development.local`, na przykład:
-
-   ```env
-   DATABASE_URL="postgresql://postgres:password@localhost:5432/spendly?schema=public"
-   ```
-
-4. Wygeneruj klienta Prisma i zastosuj istniejące migracje:
-
-   ```bash
-   npm run migrate
-   npm run generate
-   ```
-
-   Jeśli dopiero dodałeś model `Expense` do `prisma/schema.prisma`, utwórz dla niego migrację przed uruchomieniem aplikacji:
-
-   ```bash
-   npm run migrate:create
-   ```
-
-5. Uruchom serwer w trybie deweloperskim:
-
-   ```bash
-   npm run dev
-   ```
-
-Domyślny adres serwera to `https://localhost:5050`, a wszystkie endpointy mają prefiks `/v1`.
-
-> Jeśli nie masz lokalnych certyfikatów w katalogu `ssl/`, usuń lub wyczyść zmienne `SSL_CERT` i `SSL_KEY` w `.env.development.local`. Wtedy użyj `http://localhost:5050` oraz usuń flagę `-k` z przykładów curl.
-
-## Health check
-
-Endpoint potwierdza, że serwer Fastify działa. Nie sprawdza połączenia z bazą danych.
-
-```bash
-curl -k -i https://localhost:5050/v1/health
+```text
+Next.js client
+    |
+    v
+Fastify API (/v1)
+    |
+    +-- Better Auth sessions
+    +-- request validation and rate limiting
+    +-- resources: expenses, budgets, categories, reports
+    |
+    v
+PostgreSQL
 ```
 
-Oczekiwana odpowiedź:
+## Getting started
 
-```http
-HTTP/1.1 200 OK
+### Prerequisites
+
+- Node.js 18 or newer
+- Docker and Docker Compose
+
+### 1. Start PostgreSQL
+
+```bash
+docker compose up -d postgres
+```
+
+### 2. Configure the backend
+
+Create `.env.development.local` in the repository root:
+
+```env
+DATABASE_URL="postgresql://spendly:spendly@localhost:5433/spendly?schema=public"
+BETTER_AUTH_SECRET="replace-with-a-long-random-secret"
+BETTER_AUTH_URL="http://localhost:5050/v1/auth"
+CLIENT_ORIGIN="http://localhost:3000"
+SSL_CERT=
+SSL_KEY=
+```
+
+Install dependencies, generate Prisma Client, apply migrations, and run the API:
+
+```bash
+npm install
+npm run generate
+npm run migrate
+npm run dev
+```
+
+The API runs on `http://localhost:5050`.
+
+### 3. Configure and run the frontend
+
+Create `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL="http://localhost:5050/v1"
+```
+
+Then run:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## API overview
+
+Interactive API documentation is available at [http://localhost:5050/explorer](http://localhost:5050/explorer).
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/v1/health` | Liveness check |
+| `GET` | `/v1/ready` | Readiness check, including PostgreSQL connectivity |
+| `GET`, `POST` | `/v1/auth/*` | Authentication endpoints handled by Better Auth |
+| `GET` | `/v1/categories` | List expense categories |
+| `GET`, `PUT` | `/v1/budget` | Read or update the current user's monthly budget |
+| `GET`, `POST` | `/v1/expenses` | List or create expenses |
+| `GET`, `PATCH`, `DELETE` | `/v1/expenses/:id` | Read, update, or delete an expense |
+| `GET` | `/v1/reports/monthly` | Monthly spending and budget report |
+
+### Expense list query parameters
+
+`GET /v1/expenses` supports the following optional parameters:
+
+| Parameter | Example | Purpose |
+| --- | --- | --- |
+| `page` | `2` | Page number, starting at 1 |
+| `limit` | `20` | Results per page, from 1 to 100 |
+| `categoryId` | `1` | Filter by category |
+| `from`, `to` | `2026-09-01T00:00:00.000Z` | Filter by creation date |
+| `minAmount`, `maxAmount` | `20`, `200` | Filter by amount |
+| `sort` | `asc` or `desc` | Sort by creation date |
+
+Pagination metadata is returned in the `X-Page`, `X-Page-Size`, and `X-Total-Count` response headers, preserving a simple array response for the client.
+
+### Monthly report example
+
+```bash
+curl --cookie "better-auth.session_token=..." \
+  "http://localhost:5050/v1/reports/monthly?month=2026-09"
 ```
 
 ```json
-{ "status": "ok" }
+{
+  "month": "2026-09",
+  "total": 428.5,
+  "count": 12,
+  "budget": 1800,
+  "remaining": 1371.5,
+  "byCategory": [
+    { "categoryId": 1, "name": "Food", "total": 230.5, "count": 7 }
+  ]
+}
 ```
 
-## Endpointy API
-
-### Utworzenie wydatku
-
-```http
-POST /v1/expenses
-Content-Type: application/json
-```
+## Quality checks
 
 ```bash
-curl -k -i -X POST https://localhost:5050/v1/expenses \
-  -H "Content-Type: application/json" \
-  -d '{"amount":50,"description":"Pizza","categoryId":2}'
+npx tsc --noEmit
+npm test -- --run
+npm run build
 ```
 
-Wymagane pola:
-
-| Pole | Typ | Warunek |
-| --- | --- | --- |
-| `amount` | number | minimum `0.01` |
-| `description` | string | niepusty tekst |
-| `categoryId` | integer | identyfikator kategorii |
-
-Poprawna odpowiedź ma status `201 Created` i zawiera zapisany wydatek.
-
-### Lista wydatków
-
-```http
-GET /v1/expenses
-```
-
-```bash
-curl -k -i https://localhost:5050/v1/expenses
-```
-
-Odpowiedź ma status `200 OK` i zawiera wydatki posortowane od najnowszego:
-
-```json
-[
-  {
-    "id": 1,
-    "amount": 50,
-    "description": "Pizza",
-    "categoryId": 2,
-    "createdAt": "2026-09-05T10:00:00.000Z"
-  }
-]
-```
-
-### Użytkownicy
-
-| Metoda | Ścieżka | Opis |
-| --- | --- | --- |
-| `POST` | `/v1/users` | Tworzy użytkownika na podstawie `email` i `name`. |
-
-## Dokumentacja interaktywna
-
-Po uruchomieniu aplikacji Swagger UI jest dostępny pod adresem:
+## Project structure
 
 ```text
-/explorer
+frontend/                 Next.js application
+prisma/                   Prisma schema and SQL migrations
+src/core/                 configuration, plugins, authentication, database client
+src/resources/            API resources and route handlers
+tests/                    API and server tests
+docs/screenshots/         product screenshots used in this README
 ```
 
-Specyfikację OpenAPI można pobrać jako JSON z `/explorer/json` albo YAML z `/explorer/yaml`.
+## License
 
-## Przydatne polecenia
-
-```bash
-npm run dev               # serwer deweloperski z obserwowaniem zmian
-npm run build             # kompilacja TypeScript do build/
-npm start                 # uruchomienie skompilowanej aplikacji
-npm run test              # testy Vitest
-npm run lint              # sprawdzenie lintingu
-npm run generate          # generowanie Prisma i typów schematów
-npm run migrate           # zastosowanie oczekujących migracji
-npm run migrate:create    # utworzenie i zastosowanie nowej migracji
-```
-
-## Struktura projektu
-
-```text
-src/resources/
-├── core/       # endpointy infrastrukturalne, np. /health
-├── expenses/   # trasy, kontrolery, repozytorium i schematy wydatków
-└── users/      # obsługa użytkowników
-prisma/         # model danych i migracje PostgreSQL
-```
+MIT
