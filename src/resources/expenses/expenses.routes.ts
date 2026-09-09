@@ -2,6 +2,20 @@ import { FastifyInstance } from "fastify";
 import { requireUserId } from "@core/auth/index.js";
 
 const params = { type: "object", required: ["id"], properties: { id: { type: "string", pattern: "^[1-9][0-9]*$" } } };
+const listQuery = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    page: { type: "integer", minimum: 1, default: 1 },
+    limit: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+    categoryId: { type: "integer", minimum: 1 },
+    from: { type: "string", format: "date-time" },
+    to: { type: "string", format: "date-time" },
+    minAmount: { type: "number", minimum: 0 },
+    maxAmount: { type: "number", minimum: 0 },
+    sort: { type: "string", enum: ["asc", "desc"], default: "desc" },
+  },
+};
 
 export default async (fastify: FastifyInstance) => {
   /**
@@ -20,7 +34,7 @@ export default async (fastify: FastifyInstance) => {
    * @function
    * @name GET /expenses
    */
-  fastify.get("/expenses", fastify.resources.expenses.schemas.list, async function (request, reply) {
+  fastify.get<{ Querystring: { page?: number; limit?: number; categoryId?: number; from?: string; to?: string; minAmount?: number; maxAmount?: number; sort?: "asc" | "desc" } }>("/expenses", { ...fastify.resources.expenses.schemas.list, schema: { ...fastify.resources.expenses.schemas.list.schema, querystring: listQuery } }, async function (request, reply) {
     return new fastify.resources.expenses.controllers.List(request, reply, this).handle();
   });
 

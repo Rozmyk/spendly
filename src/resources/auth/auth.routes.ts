@@ -7,6 +7,7 @@ export default async (fastify: FastifyInstance) => {
   fastify.route({
     method: ["GET", "POST"],
     url: "/auth/*",
+    config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
     async handler(request, reply) {
       const url = new URL(request.url, `http://${request.headers.host}`);
       const response = await auth.handler(new Request(url, {

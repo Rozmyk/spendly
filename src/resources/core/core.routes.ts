@@ -22,4 +22,9 @@ export default async (fastify: FastifyInstance) => {
   fastify.get("/health", async function (_request, reply) {
     return reply.code(200).send({ status: "ok" });
   });
+
+  fastify.get("/ready", async function (_request, reply) {
+    await fastify.prisma.$queryRaw`SELECT 1`;
+    return reply.code(200).send({ status: "ready" });
+  });
 };

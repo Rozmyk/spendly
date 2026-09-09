@@ -5,6 +5,7 @@ import sensible from "@fastify/sensible";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import pressure from "@fastify/under-pressure";
+import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
 
 import { config, plugins } from "@core/index.js";
@@ -21,6 +22,7 @@ await fastify.register(plugins.errorHandler);
 await fastify.register(plugins.prismaPlugin);
 await fastify.register(cors, config.fastify.cors);
 await fastify.register(helmet, config.fastify.helmet);
+await fastify.register(rateLimit, { max: 100, timeWindow: "1 minute" });
 await fastify.register(pressure, config.fastify.underPressure);
 await fastify.register(swagger, config.fastify.swagger);
 await fastify.register(swaggerUi, config.fastify.swaggerUi);

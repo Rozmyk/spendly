@@ -13,6 +13,7 @@ import { UnderPressureOptions } from "@fastify/under-pressure";
 import { LoggerOptions } from "pino";
 
 import { api } from "@core/config/index.js";
+import { prisma } from "@core/database/prisma.js";
 
 /**
  * Configuration options for the Ajv JSON schema validator.
@@ -158,7 +159,8 @@ const underPressure: UnderPressureOptions = {
     url: "/healthcheck",
   },
   healthCheck: async () => {
-    // TODO: Do other health checks here, e.g. DB connection
+    if (api.environment.env === "test") return true;
+    await prisma.$queryRaw`SELECT 1`;
     return true;
   },
   healthCheckInterval: 500,

@@ -11,6 +11,22 @@ export interface Expense {
 
 export type UpdateExpense = Partial<Pick<Expense, "amount" | "description" | "categoryId">>;
 
+export interface ListExpensesOptions {
+  page: number;
+  limit: number;
+  categoryId?: number;
+  from?: Date;
+  to?: Date;
+  minAmount?: number;
+  maxAmount?: number;
+  sort: "asc" | "desc";
+}
+
+export interface PaginatedExpenses {
+  expenses: Expense[];
+  total: number;
+}
+
 class ExpenseRepository {
   public async create(prisma: PrismaClient, data: Api.Schemas.Expenses.Create.Body, userId: string): Promise<Expense> {
     const [expense] = await prisma.$queryRaw<Expense[]>(Prisma.sql`
@@ -28,19 +44,27 @@ class ExpenseRepository {
     return expense;
   }
 
-  public async findAll(prisma: PrismaClient, userId: string): Promise<Expense[]> {
-    return prisma.$queryRaw<Expense[]>(Prisma.sql`
-      SELECT
-        "id",
-        "amount"::float8 AS "amount",
-        "description",
-        "category_id" AS "categoryId",
-        "created_at" AS "createdAt",
-        "updated_at" AS "updatedAt"
-      FROM "expense"
-      WHERE "user_id" = ${userId}::uuid
-      ORDER BY "created_at" DESC
-    `);
+  public async findAll(prisma: PrismaClient, userId: string, options: ListExpensesOptions): Promise<PaginatedExpenses> {
+    const where: Prisma.ExpenseWhereInput = {
+      userId,
+      categoryId: options.categoryId,
+      amount: { gte: options.minAmount, lte: options.maxAmount },
+      createdAt: { gte: options.from, lte: options.to },
+    };
+    const [expenses, total] = await prisma.$transaction([
+      prisma.expense.findMany({
+        where,
+        orderBy: [{ createdAt: options.sort }, { id: options.sort }],
+        skip: (options.page - 1) * options.limit,
+        take: options.limit,
+      }),
+      prisma.expense.count({ where }),
+    ]);
+
+    return {
+      expenses: expenses.map((expense) => ({ ...expense, amount: Number(expense.amount) })),
+      total,
+    };
   }
 
   public async findById(prisma: PrismaClient, id: number, userId: string): Promise<Expense | null> {

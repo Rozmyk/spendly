@@ -86,6 +86,7 @@ model Expense {
 
   @@index([categoryId])
   @@index([userId])
+  @@index([userId, createdAt])
   @@map("expense")
 }
 

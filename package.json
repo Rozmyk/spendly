@@ -43,14 +43,15 @@
     "postbuild": "cpy 'src/**/schema.json' 'build/' --parents"
   },
   "dependencies": {
+    "@better-auth/prisma-adapter": "^1.7.3",
     "@fastify/autoload": "^5.7.1",
     "@fastify/cors": "^8.2.1",
     "@fastify/helmet": "^10.1.0",
+    "@fastify/rate-limit": "^8.1.1",
     "@fastify/sensible": "^5.2.0",
     "@fastify/swagger": "^8.3.1",
     "@fastify/swagger-ui": "^1.8.0",
     "@fastify/under-pressure": "^8.2.0",
-    "@better-auth/prisma-adapter": "^1.7.3",
     "@prisma/client": "^5.22.0",
     "better-auth": "^1.7.3",
     "fastify": "^4.17.0",
