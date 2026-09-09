@@ -11,7 +11,7 @@ export class List {
   public async handle() {
     const userId = await requireUserId(this.request, this.reply);
     if (!userId) return;
-    const expenses = await this.fastify.resources.expenses.repositories.expenseRepository.findAll(userId);
+    const expenses = await this.fastify.resources.expenses.repositories.expenseRepository.findAll(this.fastify.prisma, userId);
 
     return this.reply.send(expenses);
   }

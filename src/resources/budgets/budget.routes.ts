@@ -1,9 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { FastifyInstance, FastifyRequest } from "fastify";
 
 import { requireUserId } from "@core/auth/index.js";
-
-const prisma = new PrismaClient();
 
 type BudgetRequest = FastifyRequest<{ Body: { monthlyLimit: number } }>;
 
@@ -21,7 +18,7 @@ export default async (fastify: FastifyInstance) => {
   fastify.get("/budget", { schema: budgetSchema }, async (request, reply) => {
     const userId = await requireUserId(request, reply);
     if (!userId) return;
-    const budget = await prisma.budget.findUnique({ where: { userId }, select: { monthlyLimit: true } });
+    const budget = await fastify.prisma.budget.findUnique({ where: { userId }, select: { monthlyLimit: true } });
     return { monthlyLimit: budget ? Number(budget.monthlyLimit) : null };
   });
 
@@ -38,7 +35,7 @@ export default async (fastify: FastifyInstance) => {
   }, async (request: BudgetRequest, reply) => {
     const userId = await requireUserId(request, reply);
     if (!userId) return;
-    const budget = await prisma.budget.upsert({
+    const budget = await fastify.prisma.budget.upsert({
       where: { userId },
       create: { userId, monthlyLimit: request.body.monthlyLimit },
       update: { monthlyLimit: request.body.monthlyLimit },

@@ -17,6 +17,8 @@ const fastify = Fastify({ ignoreTrailingSlash: true, ajv, logger, https });
 await fastify.register(plugins.config);
 await fastify.register(plugins.resources);
 await fastify.register(sensible);
+await fastify.register(plugins.errorHandler);
+await fastify.register(plugins.prismaPlugin);
 await fastify.register(cors, config.fastify.cors);
 await fastify.register(helmet, config.fastify.helmet);
 await fastify.register(pressure, config.fastify.underPressure);

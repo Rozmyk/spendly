@@ -26,19 +26,19 @@ export default async (fastify: FastifyInstance) => {
 
   fastify.get<{ Params: { id: string } }>("/expenses/:id", { schema: { params } }, async function (request, reply) {
     const userId = await requireUserId(request, reply); if (!userId) return;
-    const expense = await this.resources.expenses.repositories.expenseRepository.findById(Number(request.params.id), userId);
+    const expense = await this.resources.expenses.repositories.expenseRepository.findById(this.prisma, Number(request.params.id), userId);
     return expense ? reply.send(expense) : reply.code(404).send({ message: "Expense not found." });
   });
 
   fastify.patch<{ Params: { id: string }; Body: { amount?: number; description?: string; categoryId?: number } }>("/expenses/:id", { schema: { params, body: { type: "object", minProperties: 1, additionalProperties: false, properties: { amount: { type: "number", minimum: 0.01 }, description: { type: "string", minLength: 1 }, categoryId: { type: "integer", minimum: 1 } } } } }, async function (request, reply) {
     const userId = await requireUserId(request, reply); if (!userId) return;
-    const expense = await this.resources.expenses.repositories.expenseRepository.update(Number(request.params.id), userId, request.body);
+    const expense = await this.resources.expenses.repositories.expenseRepository.update(this.prisma, Number(request.params.id), userId, request.body);
     return expense ? reply.send(expense) : reply.code(404).send({ message: "Expense not found." });
   });
 
   fastify.delete<{ Params: { id: string } }>("/expenses/:id", { schema: { params } }, async function (request, reply) {
     const userId = await requireUserId(request, reply); if (!userId) return;
-    const deleted = await this.resources.expenses.repositories.expenseRepository.delete(Number(request.params.id), userId);
+    const deleted = await this.resources.expenses.repositories.expenseRepository.delete(this.prisma, Number(request.params.id), userId);
     return deleted ? reply.code(204).send() : reply.code(404).send({ message: "Expense not found." });
   });
 };

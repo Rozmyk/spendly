@@ -11,7 +11,7 @@ export class Create {
   public async handle() {
     const userId = await requireUserId(this.request, this.reply);
     if (!userId) return;
-    const expense = await this.fastify.resources.expenses.repositories.expenseRepository.create(this.request.body, userId);
+    const expense = await this.fastify.resources.expenses.repositories.expenseRepository.create(this.fastify.prisma, this.request.body, userId);
 
     return this.reply.code(201).send({
       ...expense,
